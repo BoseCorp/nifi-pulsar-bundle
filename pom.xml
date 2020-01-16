@@ -37,5 +37,13 @@
     	<pulsar.version>2.4.0</pulsar.version>
     </properties>
     
+    <repositories>
+      <repository>
+        <id>bintray-yahoo-maven</id>
+        <name>bintray</name>
+        <url>https://yahoo.bintray.com/maven</url>
+      </repository>
+    </repositories>
+
     <description>A bundle of processors that can store and retrieve data from Apache Pulsar</description>
 </project>
