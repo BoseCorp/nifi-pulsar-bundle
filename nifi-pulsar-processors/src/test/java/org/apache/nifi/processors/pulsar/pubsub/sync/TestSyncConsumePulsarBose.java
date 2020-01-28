@@ -25,13 +25,13 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.nifi.processors.pulsar.pubsub.ConsumePulsar;
-import org.apache.nifi.processors.pulsar.pubsub.TestConsumePulsar;
+import org.apache.nifi.processors.pulsar.pubsub.ConsumePulsarBose;
+import org.apache.nifi.processors.pulsar.pubsub.TestConsumePulsarBose;
 import org.apache.nifi.util.MockFlowFile;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.junit.Test;
 
-public class TestSyncConsumePulsar extends TestConsumePulsar {
+public class TestSyncConsumePulsarBose extends TestConsumePulsarBose {
 
     @Test
     public void nullMessageTest() throws PulsarClientException {
@@ -39,14 +39,14 @@ public class TestSyncConsumePulsar extends TestConsumePulsar {
         when(mockMessage.getData()).thenReturn(null);
         mockClientService.setMockMessage(mockMessage);
 
-        runner.setProperty(ConsumePulsar.TOPICS, "foo");
-        runner.setProperty(ConsumePulsar.SUBSCRIPTION_NAME, "bar");
-        runner.setProperty(ConsumePulsar.SUBSCRIPTION_TYPE, "Exclusive");
+        runner.setProperty(ConsumePulsarBose.TOPICS, "foo");
+        runner.setProperty(ConsumePulsarBose.SUBSCRIPTION_NAME, "bar");
+        runner.setProperty(ConsumePulsarBose.SUBSCRIPTION_TYPE, "Exclusive");
         runner.run();
-        runner.assertAllFlowFilesTransferred(ConsumePulsar.REL_SUCCESS);
+        runner.assertAllFlowFilesTransferred(ConsumePulsarBose.REL_SUCCESS);
 
         // Make sure no Flowfiles were generated
-        List<MockFlowFile> flowFiles = runner.getFlowFilesForRelationship(ConsumePulsar.REL_SUCCESS);
+        List<MockFlowFile> flowFiles = runner.getFlowFilesForRelationship(ConsumePulsarBose.REL_SUCCESS);
         assertEquals(0, flowFiles.size());
 
         verify(mockClientService.getMockConsumer(), atLeast(1)).acknowledgeCumulative(mockMessage);
@@ -56,14 +56,14 @@ public class TestSyncConsumePulsar extends TestConsumePulsar {
     public void pulsarClientExceptionTest() throws PulsarClientException {
         when(mockClientService.getMockConsumer().receive()).thenThrow(PulsarClientException.class);
 
-        runner.setProperty(ConsumePulsar.TOPICS, "foo");
-        runner.setProperty(ConsumePulsar.SUBSCRIPTION_NAME, "bar");
-        runner.setProperty(ConsumePulsar.SUBSCRIPTION_TYPE, "Exclusive");
+        runner.setProperty(ConsumePulsarBose.TOPICS, "foo");
+        runner.setProperty(ConsumePulsarBose.SUBSCRIPTION_NAME, "bar");
+        runner.setProperty(ConsumePulsarBose.SUBSCRIPTION_TYPE, "Exclusive");
         runner.run();
-        runner.assertAllFlowFilesTransferred(ConsumePulsar.REL_SUCCESS);
+        runner.assertAllFlowFilesTransferred(ConsumePulsarBose.REL_SUCCESS);
 
         // Make sure no Flowfiles were generated
-        List<MockFlowFile> flowFiles = runner.getFlowFilesForRelationship(ConsumePulsar.REL_SUCCESS);
+        List<MockFlowFile> flowFiles = runner.getFlowFilesForRelationship(ConsumePulsarBose.REL_SUCCESS);
         assertEquals(0, flowFiles.size());
 
         verify(mockClientService.getMockConsumer(), times(0)).acknowledge(mockMessage);
@@ -75,14 +75,14 @@ public class TestSyncConsumePulsar extends TestConsumePulsar {
         when(mockMessage.getData()).thenReturn("".getBytes());
         mockClientService.setMockMessage(mockMessage);
 
-        runner.setProperty(ConsumePulsar.TOPICS, "foo");
-        runner.setProperty(ConsumePulsar.SUBSCRIPTION_NAME, "bar");
-        runner.setProperty(ConsumePulsar.SUBSCRIPTION_TYPE, "Exclusive");
+        runner.setProperty(ConsumePulsarBose.TOPICS, "foo");
+        runner.setProperty(ConsumePulsarBose.SUBSCRIPTION_NAME, "bar");
+        runner.setProperty(ConsumePulsarBose.SUBSCRIPTION_TYPE, "Exclusive");
         runner.run();
-        runner.assertAllFlowFilesTransferred(ConsumePulsar.REL_SUCCESS);
+        runner.assertAllFlowFilesTransferred(ConsumePulsarBose.REL_SUCCESS);
 
         // Make sure no Flowfiles were generated
-        List<MockFlowFile> flowFiles = runner.getFlowFilesForRelationship(ConsumePulsar.REL_SUCCESS);
+        List<MockFlowFile> flowFiles = runner.getFlowFilesForRelationship(ConsumePulsarBose.REL_SUCCESS);
         assertEquals(0, flowFiles.size());
 
         verify(mockClientService.getMockConsumer(), atLeast(1)).acknowledgeCumulative(mockMessage);
@@ -111,12 +111,12 @@ public class TestSyncConsumePulsar extends TestConsumePulsar {
         when(mockMessage.getData()).thenReturn("Mocked Message".getBytes());
         mockClientService.setMockMessage(mockMessage);
 
-        runner.setProperty(ConsumePulsar.TOPICS, "foo");
-        runner.setProperty(ConsumePulsar.SUBSCRIPTION_NAME, "bar");
-        runner.setProperty(ConsumePulsar.CONSUMER_BATCH_SIZE, 1 + "");
-        runner.setProperty(ConsumePulsar.SUBSCRIPTION_TYPE, "Exclusive");
+        runner.setProperty(ConsumePulsarBose.TOPICS, "foo");
+        runner.setProperty(ConsumePulsarBose.SUBSCRIPTION_NAME, "bar");
+        runner.setProperty(ConsumePulsarBose.CONSUMER_BATCH_SIZE, 1 + "");
+        runner.setProperty(ConsumePulsarBose.SUBSCRIPTION_TYPE, "Exclusive");
         runner.run(1, true);
-        runner.assertAllFlowFilesTransferred(ConsumePulsar.REL_SUCCESS);
+        runner.assertAllFlowFilesTransferred(ConsumePulsarBose.REL_SUCCESS);
 
         runner.assertQueueEmpty();
 

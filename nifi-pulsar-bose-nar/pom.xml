@@ -22,7 +22,7 @@
         <version>1.9.0</version>
     </parent>
 
-    <artifactId>nifi-pulsar-nar</artifactId>
+    <artifactId>nifi-pulsar-bose-nar</artifactId>
     <packaging>nar</packaging>
 
     <dependencies>

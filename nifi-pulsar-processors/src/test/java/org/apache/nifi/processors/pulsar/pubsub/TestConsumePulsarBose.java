@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class TestConsumePulsar extends AbstractPulsarProcessorTest<byte[]> {
+public class TestConsumePulsarBose extends AbstractPulsarProcessorTest<byte[]> {
 
     @Mock
     protected Message<byte[]> mockMessage;
@@ -49,7 +49,7 @@ public class TestConsumePulsar extends AbstractPulsarProcessorTest<byte[]> {
 
     @Before
     public void init() throws InitializationException {
-        runner = TestRunners.newTestRunner(ConsumePulsar.class);
+        runner = TestRunners.newTestRunner(ConsumePulsarBose.class);
         mockMessage = mock(Message.class);
         addPulsarClientService();
     }
@@ -82,16 +82,16 @@ public class TestConsumePulsar extends AbstractPulsarProcessorTest<byte[]> {
         when(mockMessage.getValue()).thenReturn("Mocked Message".getBytes());
         mockClientService.setMockMessage(mockMessage);
 
-        runner.setProperty(ConsumePulsar.TOPICS, "foo");
-        runner.setProperty(ConsumePulsar.SUBSCRIPTION_NAME, "bar");
-        runner.setProperty(ConsumePulsar.SUBSCRIPTION_TYPE, "Exclusive");
+        runner.setProperty(ConsumePulsarBose.TOPICS, "foo");
+        runner.setProperty(ConsumePulsarBose.SUBSCRIPTION_NAME, "bar");
+        runner.setProperty(ConsumePulsarBose.SUBSCRIPTION_TYPE, "Exclusive");
         runner.run(10, true);
-        runner.assertAllFlowFilesTransferred(ConsumePulsar.REL_SUCCESS);
+        runner.assertAllFlowFilesTransferred(ConsumePulsarBose.REL_SUCCESS);
 
         runner.assertQueueEmpty();
 
         // Verify that the receive method on the consumer was called 10 times
-        int batchSize = Integer.parseInt(ConsumePulsar.CONSUMER_BATCH_SIZE.getDefaultValue());
+        int batchSize = Integer.parseInt(ConsumePulsarBose.CONSUMER_BATCH_SIZE.getDefaultValue());
         verify(mockClientService.getMockConsumer(), atLeast(10 * batchSize)).receive(0, TimeUnit.SECONDS);
 
         // Verify that each message was acknowledged
@@ -106,20 +106,20 @@ public class TestConsumePulsar extends AbstractPulsarProcessorTest<byte[]> {
         when(mockMessage.getValue()).thenReturn(msg.getBytes());
         mockClientService.setMockMessage(mockMessage);
 
-        runner.setProperty(ConsumePulsar.ASYNC_ENABLED, Boolean.toString(async));
-        runner.setProperty(ConsumePulsar.TOPICS, topic);
-        runner.setProperty(ConsumePulsar.SUBSCRIPTION_NAME, sub);
-        runner.setProperty(ConsumePulsar.CONSUMER_BATCH_SIZE, batchSize + "");
-        runner.setProperty(ConsumePulsar.SUBSCRIPTION_TYPE, "Exclusive");
-        runner.setProperty(ConsumePulsar.MESSAGE_DEMARCATOR, "\n");
+        runner.setProperty(ConsumePulsarBose.ASYNC_ENABLED, Boolean.toString(async));
+        runner.setProperty(ConsumePulsarBose.TOPICS, topic);
+        runner.setProperty(ConsumePulsarBose.SUBSCRIPTION_NAME, sub);
+        runner.setProperty(ConsumePulsarBose.CONSUMER_BATCH_SIZE, batchSize + "");
+        runner.setProperty(ConsumePulsarBose.SUBSCRIPTION_TYPE, "Exclusive");
+        runner.setProperty(ConsumePulsarBose.MESSAGE_DEMARCATOR, "\n");
         runner.run(1, true);
 
-        runner.assertAllFlowFilesTransferred(ConsumePulsar.REL_SUCCESS);
+        runner.assertAllFlowFilesTransferred(ConsumePulsarBose.REL_SUCCESS);
 
-        List<MockFlowFile> flowFiles = runner.getFlowFilesForRelationship(ConsumePulsar.REL_SUCCESS);
+        List<MockFlowFile> flowFiles = runner.getFlowFilesForRelationship(ConsumePulsarBose.REL_SUCCESS);
         assertEquals(1, flowFiles.size());
 
-        flowFiles.get(0).assertAttributeEquals(ConsumePulsar.MSG_COUNT, batchSize + "");
+        flowFiles.get(0).assertAttributeEquals(ConsumePulsarBose.MSG_COUNT, batchSize + "");
 
         StringBuffer sb = new StringBuffer();
         for (int idx = 0; idx < batchSize; idx++) {
@@ -144,20 +144,20 @@ public class TestConsumePulsar extends AbstractPulsarProcessorTest<byte[]> {
         when(mockMessage.getValue()).thenReturn(msg.getBytes());
         mockClientService.setMockMessage(mockMessage);
 
-        runner.setProperty(ConsumePulsar.ASYNC_ENABLED, Boolean.toString(async));
-        runner.setProperty(ConsumePulsar.TOPICS, topic);
-        runner.setProperty(ConsumePulsar.SUBSCRIPTION_NAME, sub);
-        runner.setProperty(ConsumePulsar.CONSUMER_BATCH_SIZE, 1 + "");
-        runner.setProperty(ConsumePulsar.SUBSCRIPTION_TYPE, "Exclusive");
+        runner.setProperty(ConsumePulsarBose.ASYNC_ENABLED, Boolean.toString(async));
+        runner.setProperty(ConsumePulsarBose.TOPICS, topic);
+        runner.setProperty(ConsumePulsarBose.SUBSCRIPTION_NAME, sub);
+        runner.setProperty(ConsumePulsarBose.CONSUMER_BATCH_SIZE, 1 + "");
+        runner.setProperty(ConsumePulsarBose.SUBSCRIPTION_TYPE, "Exclusive");
         runner.run(iterations, true);
 
-        runner.assertAllFlowFilesTransferred(ConsumePulsar.REL_SUCCESS);
+        runner.assertAllFlowFilesTransferred(ConsumePulsarBose.REL_SUCCESS);
 
-        List<MockFlowFile> flowFiles = runner.getFlowFilesForRelationship(ConsumePulsar.REL_SUCCESS);
+        List<MockFlowFile> flowFiles = runner.getFlowFilesForRelationship(ConsumePulsarBose.REL_SUCCESS);
         assertEquals(iterations, flowFiles.size());
 
         for (MockFlowFile ff : flowFiles) {
-            ff.assertContentEquals(msg + ConsumePulsar.MESSAGE_DEMARCATOR.getDefaultValue());
+            ff.assertContentEquals(msg + ConsumePulsarBose.MESSAGE_DEMARCATOR.getDefaultValue());
         }
 
         verify(mockClientService.getMockConsumer(), times(iterations * 2)).receive(0, TimeUnit.SECONDS);

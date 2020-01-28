@@ -27,7 +27,7 @@
 
     <modules>
         <module>nifi-pulsar-processors</module>
-        <module>nifi-pulsar-nar</module>
+        <module>nifi-pulsar-bose-nar</module>
         <module>nifi-pulsar-client-service-api</module>
         <module>nifi-pulsar-client-service</module>
         <module>nifi-pulsar-client-service-nar</module>
