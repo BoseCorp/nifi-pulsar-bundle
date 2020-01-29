@@ -9,3 +9,4 @@ docker exec -u root nifi /bin/chown nifi:nifi /tmp/nifi-pulsar-bose-nar-1.9.0.na
 docker exec -u root nifi /bin/chmod 664 /tmp/nifi-pulsar-bose-nar-1.9.0.nar
 docker exec -u root nifi /bin/mv /tmp/nifi-pulsar-bose-nar-1.9.0.nar /opt/nifi/nifi-current/extensions/
 echo "Nifi UI URL: http://localhost:8080/nifi"
+echo "See https://streaml.io/blog/intro-to-nifi-processors for a flow setup example, or import the Pulsar_Test_Flow.xml template."

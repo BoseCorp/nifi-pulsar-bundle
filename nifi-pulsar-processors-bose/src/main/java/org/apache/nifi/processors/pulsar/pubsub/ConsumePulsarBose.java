@@ -33,25 +33,38 @@ import org.apache.nifi.annotation.behavior.WritesAttribute;
 import org.apache.nifi.annotation.behavior.WritesAttributes;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
+import org.apache.nifi.annotation.documentation.SeeAlso;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.processors.pulsar.AbstractPulsarConsumerProcessor;
+import org.apache.nifi.components.AllowableValue;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.commons.io.IOUtils;
 
+//@SeeAlso({PublishPulsar.class, ConsumePulsarRecord.class, PublishPulsarRecord.class})
+@SeeAlso({PublishPulsarBose.class})
 @Tags({"Pulsar", "Get", "Ingest", "Ingress", "Topic", "PubSub", "Consume"})
-@CapabilityDescription("Consumes messages from Apache Pulsar. The complementary NiFi processor for sending messages is PublishPulsar.")
+@CapabilityDescription("Consumes messages from Apache Pulsar, with message properties. The complementary NiFi processor for sending messages is PublishPulsar.")
 @InputRequirement(InputRequirement.Requirement.INPUT_FORBIDDEN)
 @WritesAttributes({
-    @WritesAttribute(attribute = "message.count", description = "The number of messages received from Pulsar")
+    @WritesAttribute(attribute = "message.header.<headerName>", description = "Message property from Pulsar message"),
+    @WritesAttribute(attribute = "message.eventTime", description = "Message property from Pulsar message"),
+    @WritesAttribute(attribute = "message.publishTime", description = "Message property from Pulsar message"),
+    @WritesAttribute(attribute = "message.sequenceId", description = "Message property from Pulsar message"),
+    @WritesAttribute(attribute = "message.topicName", description = "Message property from Pulsar message"),
+    @WritesAttribute(attribute = "message.redeliveryCount", description = "Message property from Pulsar message")
 })
 public class ConsumePulsarBose extends AbstractPulsarConsumerProcessor<byte[]> {
 
-    public static final String MSG_COUNT = "message.count";
+    // repeating these definitions from the base class because they are not accessible across nars
+    protected static final AllowableValue EXCLUSIVE = new AllowableValue("Exclusive", "Exclusive", "There can be only 1 consumer on the same topic with the same subscription name");
+    protected static final AllowableValue SHARED = new AllowableValue("Shared", "Shared", "Multiple consumer will be able to use the same subscription name and the messages");
+    protected static final AllowableValue FAILOVER = new AllowableValue("Failover", "Failover", "Multiple consumer will be able to use the same subscription name but only 1 consumer "
+            + "will receive the messages. If that consumer disconnects, one of the other connected consumers will start receiving messages.");
 
     @Override
     public void onTrigger(ProcessContext context, ProcessSession session) throws ProcessException {
@@ -157,12 +170,8 @@ public class ConsumePulsarBose extends AbstractPulsarConsumerProcessor<byte[]> {
             //        .evaluateAttributeExpressions().getValue().getBytes(StandardCharsets.UTF_8) : null;
             
             // Cumulative acks are NOT permitted on Shared subscriptions.
-            // BOSE - can't access the protected SHARED from the base class because it's in another jar loaded by
-            // a different class loader
-            //final boolean shared = context.getProperty(SUBSCRIPTION_TYPE).getValue()
-            //        .equalsIgnoreCase(SHARED.getValue());
             final boolean shared = context.getProperty(SUBSCRIPTION_TYPE).getValue()
-                .equalsIgnoreCase("Shared");
+                .equalsIgnoreCase(SHARED.getValue());
 
             Message<byte[]> msg = null;
             Message<byte[]> lastMsg = null;
