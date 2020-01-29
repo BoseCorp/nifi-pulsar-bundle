@@ -28,21 +28,15 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-pulsar-client-service-nar</artifactId>
-            <version>1.9.0</version>
-            <type>nar</type>
-		</dependency>
-
-        <dependency>
-            <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-pulsar-processors</artifactId>
+            <artifactId>nifi-pulsar-processors-bose</artifactId>
             <version>1.9.0</version>
         </dependency>
 
 		<dependency>
             <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-pulsar-client-service</artifactId>
+            <artifactId>nifi-pulsar-nar</artifactId>
             <version>1.9.0</version>
+            <type>nar</type>
         </dependency>
 
     </dependencies>

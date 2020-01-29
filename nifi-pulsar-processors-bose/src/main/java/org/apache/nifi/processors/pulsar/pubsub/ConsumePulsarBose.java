@@ -157,8 +157,12 @@ public class ConsumePulsarBose extends AbstractPulsarConsumerProcessor<byte[]> {
             //        .evaluateAttributeExpressions().getValue().getBytes(StandardCharsets.UTF_8) : null;
             
             // Cumulative acks are NOT permitted on Shared subscriptions.
+            // BOSE - can't access the protected SHARED from the base class because it's in another jar loaded by
+            // a different class loader
+            //final boolean shared = context.getProperty(SUBSCRIPTION_TYPE).getValue()
+            //        .equalsIgnoreCase(SHARED.getValue());
             final boolean shared = context.getProperty(SUBSCRIPTION_TYPE).getValue()
-                    .equalsIgnoreCase(SHARED.getValue());
+                .equalsIgnoreCase("Shared");
 
             Message<byte[]> msg = null;
             Message<byte[]> lastMsg = null;

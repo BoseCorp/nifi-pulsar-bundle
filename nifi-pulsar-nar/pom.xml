@@ -18,34 +18,33 @@
 
     <parent>
         <groupId>org.apache.nifi</groupId>
-        <artifactId>nifi-nar-bundles</artifactId>
+        <artifactId>nifi-pulsar-bundle</artifactId>
         <version>1.9.0</version>
     </parent>
 
-    <artifactId>nifi-pulsar-bundle</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>nifi-pulsar-nar</artifactId>
+    <packaging>nar</packaging>
 
-    <modules>
-        <module>nifi-pulsar-processors-bose</module>
-        <module>nifi-pulsar-processors</module>
-        <module>nifi-pulsar-nar</module>
-        <module>nifi-pulsar-bose-nar</module>
-        <module>nifi-pulsar-client-service-api</module>
-        <module>nifi-pulsar-client-service</module>
-        <module>nifi-pulsar-client-service-nar</module>
-    </modules>
-    
-    <properties>
-    	<pulsar.version>2.4.0</pulsar.version>
-    </properties>
-    
-    <repositories>
-      <repository>
-        <id>bintray-yahoo-maven</id>
-        <name>bintray</name>
-        <url>https://yahoo.bintray.com/maven</url>
-      </repository>
-    </repositories>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.nifi</groupId>
+            <artifactId>nifi-pulsar-client-service-nar</artifactId>
+            <version>1.9.0</version>
+            <type>nar</type>
+		</dependency>
 
-    <description>A bundle of processors that can store and retrieve data from Apache Pulsar</description>
+        <dependency>
+            <groupId>org.apache.nifi</groupId>
+            <artifactId>nifi-pulsar-processors</artifactId>
+            <version>1.9.0</version>
+        </dependency>
+
+		<dependency>
+            <groupId>org.apache.nifi</groupId>
+            <artifactId>nifi-pulsar-client-service</artifactId>
+            <version>1.9.0</version>
+        </dependency>
+
+    </dependencies>
+
 </project>

@@ -22,7 +22,7 @@
         <version>1.9.0</version>
     </parent>
 
-    <artifactId>nifi-pulsar-processors</artifactId>
+    <artifactId>nifi-pulsar-processors-bose</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -52,6 +52,20 @@
             <artifactId>nifi-pulsar-client-service-api</artifactId>
             <version>1.9.0</version>
             <scope>provided</scope>
+	    </dependency>
+        <dependency>
+            <groupId>org.apache.nifi</groupId>
+            <artifactId>nifi-pulsar-processors</artifactId>
+            <version>1.9.0</version>
+            <scope>compile</scope>
+	    </dependency>
+        <dependency>
+            <groupId>org.apache.nifi</groupId>
+            <artifactId>nifi-pulsar-processors</artifactId>
+            <classifier>tests</classifier>
+            <version>1.9.0</version>
+            <type>test-jar</type>
+            <scope>test</scope>
 	    </dependency>
 	    <!-- 
         <dependency>
@@ -87,22 +101,5 @@
            <version>2.4</version>
         </dependency>
     </dependencies>
-
-    <build>
-    <plugins>
-        <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.2.0</version>
-        <executions>
-            <execution>
-            <goals>
-                <goal>test-jar</goal>
-            </goals>
-            </execution>
-        </executions>
-        </plugin>
-    </plugins>
-    </build>
 
 </project>
