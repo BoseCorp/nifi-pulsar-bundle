@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -81,32 +82,56 @@ public class ConsumePulsarBose extends AbstractPulsarConsumerProcessor<byte[]> {
 
             if (done != null) {
 
-                final byte[] demarcatorBytes = context.getProperty(MESSAGE_DEMARCATOR).isSet() ? context.getProperty(MESSAGE_DEMARCATOR)
-                    .evaluateAttributeExpressions().getValue().getBytes(StandardCharsets.UTF_8) : null;
+                //final byte[] demarcatorBytes = context.getProperty(MESSAGE_DEMARCATOR).isSet() ? context.getProperty(MESSAGE_DEMARCATOR)
+                //    .evaluateAttributeExpressions().getValue().getBytes(StandardCharsets.UTF_8) : null;
 
                 List<Message<byte[]>> messages = done.get();
 
                 if (CollectionUtils.isNotEmpty(messages)) {
-                    FlowFile flowFile = session.create();
-                    OutputStream out = session.write(flowFile);
                     AtomicInteger msgCount = new AtomicInteger(0);
 
                     messages.forEach(msg -> {
-                        try {
-                            out.write(msg.getValue());
-                            out.write(demarcatorBytes);
-                            msgCount.getAndIncrement();
-                        } catch (final IOException ioEx) {
-                            session.rollback();
-                            return;
+                        if (msg.getValue() != null && msg.getValue().length > 0) {
+                            FlowFile flowFile = session.create();
+                            OutputStream out = session.write(flowFile);
+                            try {
+                                out.write(msg.getValue());
+                                //out.write(demarcatorBytes);
+                                msgCount.getAndIncrement();
+                            } catch (final IOException ioEx) {
+                                session.rollback();
+                                return;
+                            }
+                            IOUtils.closeQuietly(out);
+
+                            session.putAttribute(flowFile, "message.eventTime", Long.toString(msg.getEventTime()));
+                            session.putAttribute(flowFile, "message.publishTime", Long.toString(msg.getPublishTime()));
+                            session.putAttribute(flowFile, "message.sequenceId", Long.toString(msg.getSequenceId()));
+
+                            String topicName = msg.getTopicName();
+                            if (topicName != null) {
+                                session.putAttribute(flowFile, "message.topicName", topicName);
+                            }
+
+                            session.putAttribute(flowFile, "message.redeliveryCount", Integer.toString(msg.getRedeliveryCount()));
+        
+                            String key = msg.getKey();
+                            if (key != null) {
+                                session.putAttribute(flowFile, "message.key", key);
+                            }
+        
+                            // Populate headers as flowfile attributes
+                            Map<String,String> msgprops = msg.getProperties();
+                            if (msgprops != null) {
+                                for (String k: msgprops.keySet()) {
+                                    session.putAttribute(flowFile, "message.header." + k, msgprops.get(k));
+                                }
+                            }
+
+                            session.getProvenanceReporter().receive(flowFile, getPulsarClientService().getPulsarBrokerRootURL() + "/" + consumer.getTopic());
+                            session.transfer(flowFile, REL_SUCCESS);    
                         }
                     });
-
-                    IOUtils.closeQuietly(out);
-
-                    session.putAttribute(flowFile, MSG_COUNT, msgCount.toString());
-                    session.getProvenanceReporter().receive(flowFile, getPulsarClientService().getPulsarBrokerRootURL() + "/" + consumer.getTopic());
-                    session.transfer(flowFile, REL_SUCCESS);
                     session.commit();
                 }
                 // Acknowledge consuming the message
@@ -128,22 +153,21 @@ public class ConsumePulsarBose extends AbstractPulsarConsumerProcessor<byte[]> {
             final int maxMessages = context.getProperty(CONSUMER_BATCH_SIZE).isSet() ? context.getProperty(CONSUMER_BATCH_SIZE)
                     .evaluateAttributeExpressions().asInteger() : Integer.MAX_VALUE;
 
-            final byte[] demarcatorBytes = context.getProperty(MESSAGE_DEMARCATOR).isSet() ? context.getProperty(MESSAGE_DEMARCATOR)
-                    .evaluateAttributeExpressions().getValue().getBytes(StandardCharsets.UTF_8) : null;
+            //final byte[] demarcatorBytes = context.getProperty(MESSAGE_DEMARCATOR).isSet() ? context.getProperty(MESSAGE_DEMARCATOR)
+            //        .evaluateAttributeExpressions().getValue().getBytes(StandardCharsets.UTF_8) : null;
             
             // Cumulative acks are NOT permitted on Shared subscriptions.
             final boolean shared = context.getProperty(SUBSCRIPTION_TYPE).getValue()
                     .equalsIgnoreCase(SHARED.getValue());
 
-            FlowFile flowFile = session.create();
-            OutputStream out = session.write(flowFile);
             Message<byte[]> msg = null;
             Message<byte[]> lastMsg = null;
             AtomicInteger msgCount = new AtomicInteger(0);
             AtomicInteger loopCounter = new AtomicInteger(0);
+            FlowFile flowFile = null;
 
             while (((msg = consumer.receive(0, TimeUnit.SECONDS)) != null) && loopCounter.get() < maxMessages) {
-                try {
+                try {        
                     lastMsg = msg;
                     loopCounter.incrementAndGet();
                     
@@ -155,9 +179,43 @@ public class ConsumePulsarBose extends AbstractPulsarConsumerProcessor<byte[]> {
                     if (msg.getValue() == null || msg.getValue().length < 1) {
                       continue;
                     }
+                    flowFile = session.create();
+                    OutputStream out = session.write(flowFile);
                     out.write(msg.getValue());
-                    out.write(demarcatorBytes);
+                    //out.write(demarcatorBytes);
+                    IOUtils.closeQuietly(out);
+
                     msgCount.getAndIncrement();
+
+                    session.putAttribute(flowFile, "message.eventTime", Long.toString(msg.getEventTime()));
+                    session.putAttribute(flowFile, "message.publishTime", Long.toString(msg.getPublishTime()));
+                    session.putAttribute(flowFile, "message.sequenceId", Long.toString(msg.getSequenceId()));
+
+                    String topicName = msg.getTopicName();
+                    if (topicName != null) {
+                        session.putAttribute(flowFile, "message.topicName", topicName);
+                    }
+                    
+                    session.putAttribute(flowFile, "message.redeliveryCount", Integer.toString(msg.getRedeliveryCount()));
+
+                    String key = msg.getKey();
+                    if (key != null) {
+                        session.putAttribute(flowFile, "message.key", key);
+                    }
+
+                    // Populate headers as flowfile attributes
+                    Map<String,String> msgprops = msg.getProperties();
+                    if (msgprops != null) {
+                        for (String k: msgprops.keySet()) {
+                            session.putAttribute(flowFile, "message.header." + k, msgprops.get(k));
+                        }
+                    }
+
+                    session.getProvenanceReporter().receive(flowFile, getPulsarClientService().getPulsarBrokerRootURL() + "/" + consumer.getTopic());
+                    session.transfer(flowFile, REL_SUCCESS);
+                    getLogger().debug("Created {} (message number {} in the current batch) received from Pulsar Server and transferred to 'success'",
+                       new Object[]{flowFile, msgCount.toString()});
+    
 
                 } catch (final IOException ioEx) {
                   getLogger().error("Unable to create flow file ", ioEx);
@@ -169,22 +227,11 @@ public class ConsumePulsarBose extends AbstractPulsarConsumerProcessor<byte[]> {
                 }
             }
             
-            IOUtils.closeQuietly(out);
-
             if (!shared && lastMsg != null)  {
                 consumer.acknowledgeCumulative(lastMsg);
             }
 
-            if (msgCount.get() < 1) {
-                session.remove(flowFile);
-                session.commit();
-            } else {
-                session.putAttribute(flowFile, MSG_COUNT, msgCount.toString());
-                session.getProvenanceReporter().receive(flowFile, getPulsarClientService().getPulsarBrokerRootURL() + "/" + consumer.getTopic());
-                session.transfer(flowFile, REL_SUCCESS);
-                getLogger().debug("Created {} from {} messages received from Pulsar Server and transferred to 'success'",
-                   new Object[]{flowFile, msgCount.toString()});
-            }
+            session.commit();
 
         } catch (PulsarClientException e) {
         	getLogger().error("Error communicating with Apache Pulsar", e);
