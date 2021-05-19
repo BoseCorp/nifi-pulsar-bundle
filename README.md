@@ -1,5 +1,26 @@
 # nifi-pulsar-bundle
-The collection of Apache NiFi processors to use with Apache Pulsar
+The collection of Apache NiFi processors to use with Apache Pulsar. The following subdirectories contain
+code from the original Pulsar bundle from streamlio, forked from afire007/nifi-pulsar-bundle (the same code is in the 1.9 branch
+of this repo). Note: there are numerous copies of the nifi-pulsar-bundle repo on Github. The official one is most likely https://github.com/openconnectors/nifi-pulsar-bundle)
+- nifi-pulsar-client-service
+- nifi-pulsar-client-service-api
+- nifi-pulsar-client-service-nar
+- nifi-pulsar-nar
+- nifi-pulsar-processors
+Do not change the code in these subdirectories other than to pick up changes from the original repo's 1.9 branch. The
+process is to merge changes from the parent repo master or 1.9 branch into the 1.9 branch of this repo, then merge up changes
+from the 1.9 branch into this branch.
+
+The purpose of this branch is to add changes to the processor without modifying the original Pulsar processor code. This is done by extending the Pulsar processor classes with code in the `nifi-pulsar-processors-bose` subdirectory and the build configuration in `nifi-pulsar-bose-nar`. The top level pom.xml file was also modified to build the Bose custom code.
+
+## Build Steps
+For max compatibility, build with java8
+```
+$ mvn clean install
+```
+
+## Local testing
+You can use the scripts in the test/ subdirectory to start Pulsar and Nifi in local docker containers. The streamlio Nifi image used already has the Pulsar bundle included.
 
 ## Copying nar files into Nifi container in Kubernetes for testing
 ```
@@ -23,3 +44,4 @@ then run
 ```
 ls -l /opt/nifi/data/extension
 ```
+Note that as a prerequisite, the base Nifi pulsar bundle nar file (`nifi-pulsar-nar/target/nifi-pulsar-nar-1.9.0.nar`) must also be present.
