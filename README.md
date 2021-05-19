@@ -30,7 +30,7 @@ where svc-data-stream-processing-integration is the namespace name and nifi-0 is
 
 ## Publishing nar files for production
 When ready for Nifi to pick up your nar file on startup,
-copy the nar file to the following S3 location:
+copy the nar file `nifi-pulsar-bose-nar/target/nifi-pulsar-bose-nar-1.9.0.nar` to the following S3 location:
 ```
 s3://bose-dp-packages/nifi-nars/
 ```

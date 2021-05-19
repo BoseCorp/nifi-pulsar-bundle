@@ -18,7 +18,7 @@ package org.apache.nifi.processors.pulsar.pubsub;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -42,6 +42,7 @@ import org.apache.nifi.processors.pulsar.AbstractPulsarConsumerProcessor;
 import org.apache.nifi.components.AllowableValue;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
+import org.apache.pulsar.client.api.MessageId;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.commons.io.IOUtils;
 
@@ -56,7 +57,9 @@ import org.apache.commons.io.IOUtils;
     @WritesAttribute(attribute = "message.publishTime", description = "Message property from Pulsar message"),
     @WritesAttribute(attribute = "message.sequenceId", description = "Message property from Pulsar message"),
     @WritesAttribute(attribute = "message.topicName", description = "Message property from Pulsar message"),
-    @WritesAttribute(attribute = "message.redeliveryCount", description = "Message property from Pulsar message")
+    @WritesAttribute(attribute = "message.redeliveryCount", description = "Message property from Pulsar message"),
+    @WritesAttribute(attribute = "message.id", description = "Message property from Pulsar message"),
+    @WritesAttribute(attribute = "message.producerName", description = "Message property from Pulsar message")
 })
 public class ConsumePulsarBose extends AbstractPulsarConsumerProcessor<byte[]> {
 
@@ -132,7 +135,17 @@ public class ConsumePulsarBose extends AbstractPulsarConsumerProcessor<byte[]> {
                             if (key != null) {
                                 session.putAttribute(flowFile, "message.key", key);
                             }
+
+                            MessageId msgid = msg.getMessageId();
+                            if (msgid != null) {
+                                session.putAttribute(flowFile, "message.id", Base64.getEncoder().encodeToString(msgid.toByteArray()));
+                            }
         
+                            String producerName = msg.getProducerName();
+                            if (producerName != null) {
+                                session.putAttribute(flowFile, "message.producerName", producerName);
+                            }
+
                             // Populate headers as flowfile attributes
                             Map<String,String> msgprops = msg.getProperties();
                             if (msgprops != null) {
@@ -214,6 +227,16 @@ public class ConsumePulsarBose extends AbstractPulsarConsumerProcessor<byte[]> {
                     String key = msg.getKey();
                     if (key != null) {
                         session.putAttribute(flowFile, "message.key", key);
+                    }
+
+                    MessageId msgid = msg.getMessageId();
+                    if (msgid != null) {
+                        session.putAttribute(flowFile, "message.id", Base64.getEncoder().encodeToString(msgid.toByteArray()));
+                    }
+
+                    String producerName = msg.getProducerName();
+                    if (producerName != null) {
+                        session.putAttribute(flowFile, "message.producerName", producerName);
                     }
 
                     // Populate headers as flowfile attributes
